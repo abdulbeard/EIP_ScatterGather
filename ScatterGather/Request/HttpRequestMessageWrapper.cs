@@ -4,6 +4,7 @@ namespace ScatterGather.Request
 {
     public class HttpRequestMessageWrapper : HttpRequestMessage, IRequest
     {
-        public string Host => RequestUri?.ToString() ?? string.Empty;
+        public IHost Host => new HttpHost(RequestUri?.ToString() ?? string.Empty);
+
     }
 }

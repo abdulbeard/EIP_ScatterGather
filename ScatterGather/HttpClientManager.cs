@@ -19,19 +19,24 @@ namespace ScatterGather
             }
         }
 
-        public IClient<HttpResponseMessage, HttpRequestMessageWrapper> GetClient(string host)
+        public IClient<HttpResponseMessage, HttpRequestMessageWrapper> GetClient(IHost host)
         {
+            if (!(host is HttpHost))
+            {
+                return null;
+            }
+            var httpHost = host as HttpHost;
             var hostnameHash = host.GetHashCode();
             if (!dict.ContainsKey(hostnameHash))
             {
-                AddClient(host, new SGHttpClient {
-                    BaseAddress = new Uri(host)
+                AddClient(httpHost, new SGHttpClient {
+                    BaseAddress = new Uri(httpHost.Host.ToString())
                 });
             }
             return dict[hostnameHash];
         }
 
-        public void AddClient(string host, IClient<HttpResponseMessage, HttpRequestMessageWrapper> client)
+        public void AddClient(IHost host, IClient<HttpResponseMessage, HttpRequestMessageWrapper> client)
         {
             if (!dict.ContainsKey(host.GetHashCode()))
             {
@@ -48,12 +53,12 @@ namespace ScatterGather
         /// </summary>
         /// <param name="host">Is used to uniquely identify a client i.e. one client per host</param>
         /// <returns></returns>
-        IClient<TOut, TIn> GetClient(string host);
+        IClient<TOut, TIn> GetClient(IHost host);
         /// <summary>
         /// Adds a client
         /// </summary>
         /// <param name="host">uniquely identifies a destination of the message</param>
-        void AddClient(string host, IClient<TOut, TIn> client);
+        void AddClient(IHost host, IClient<TOut, TIn> client);
     }
 
     public interface IClient<TOut, TIn>

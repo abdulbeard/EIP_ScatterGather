@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net.Http;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using ScatterGather.Request;
 using ScatterGather.Aggregation;
-using ScatterGather.Result;
 using ScatterGather.Workloads;
 
 namespace ScatterGather
@@ -25,12 +21,15 @@ namespace ScatterGather
         }
 
         public async Task<List<Rslt>> MulticastAsync<Rslt, Req, Rspns>(AbstractRequestInstructions<Rslt, Req, Rspns> request,
-            List<string> hosts, IAggregator<Rslt> gatherer) where Req: IRequest
+            List<IHost> hosts, IAggregator<Rslt> gatherer) where Req: IRequest
         {
             if (GetTypeOfWorkload(request) == WorkloadType.Http)
             {
-                return await (new HttpWorkload().DoHttpRequestForSeveralRecipientsAsync(request as HttpRequestInstructions<Rslt>,
-                    hosts.Select(x => new Uri(x)).ToList(), gatherer));
+                if (hosts?.All(x => x.GetType() == typeof(HttpHost)) ?? false)
+                {
+                    return await (new HttpWorkload().DoHttpRequestForSeveralRecipientsAsync(request as HttpRequestInstructions<Rslt>,
+                        hosts.Select(x => new Uri(x.Host.ToString())).ToList(), gatherer));
+                }
             }
             else
             {

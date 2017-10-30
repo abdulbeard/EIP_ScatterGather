@@ -1,7 +1,9 @@
-﻿namespace ScatterGather.Request
+﻿using System.Collections.Generic;
+
+namespace ScatterGather.Request
 {
     public interface IRequest
     {
-        string Host { get; }
+        IHost Host { get; }
     }
 }

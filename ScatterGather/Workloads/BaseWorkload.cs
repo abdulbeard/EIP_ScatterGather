@@ -12,7 +12,7 @@ namespace ScatterGather.Workloads
     public class BaseWorkload<Rslt, Req, Rspns> where Req : IRequest
     {
         public async Task<List<Rslt>> DoAsync(AbstractRequestInstructions<Rslt, Req, Rspns> request,
-            List<string> hosts, IAggregator<Rslt> gatherer)
+            List<IHost> hosts, IAggregator<Rslt> gatherer)
         {
             if (request.ClientManager == null)
             {

@@ -12,6 +12,6 @@ namespace ScatterGather.Workloads
             TimeSpan gatherTimeout, IAggregator<Rslt> gatherer) where Req: IRequest;
 
         Task<List<Rslt>> MulticastAsync<Rslt, Req, Rspns>(AbstractRequestInstructions<Rslt, Req, Rspns> request,
-            List<string> hosts, IAggregator<Rslt> gatherer) where Req: IRequest;
+            List<IHost> hosts, IAggregator<Rslt> gatherer) where Req: IRequest;
     }
 }

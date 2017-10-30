@@ -27,7 +27,7 @@ namespace ScatterGather.Workloads
             cts.CancelAfter(request.Timeout);
             foreach (var host in hosts)
             {
-                var client = clientManager.GetClient(host.Host);
+                var client = clientManager.GetClient(new HttpHost(host.OriginalString));
                 listTasksToAwait.Add(client.SendAsync(request.Request, cts.Token).ContinueWith(
                     x => listResults.Add(request.ResponseTransformer(x.Result))));
             }
@@ -46,7 +46,7 @@ namespace ScatterGather.Workloads
             cts.CancelAfter(gatherTimeout);
             foreach (var request in requests)
             {
-                var client = clientManager.GetClient(request.Request.RequestUri.ToString());
+                var client = clientManager.GetClient(new HttpHost(request.Request.RequestUri.ToString()));
                 if (client != null)
                 {
                     listTasksToAwait.Add(client.SendAsync(request.Request, cts.Token).ContinueWith(
