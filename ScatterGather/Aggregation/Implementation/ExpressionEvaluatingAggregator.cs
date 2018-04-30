@@ -1,8 +1,8 @@
-﻿using ScatterGather.Result;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using ScatterGather.Result;
 
-namespace ScatterGather.Aggregation
+namespace ScatterGather.Aggregation.Implementation
 {
     public class ExpressionEvaluatingAggregator<T> : IAggregator<T>
     {

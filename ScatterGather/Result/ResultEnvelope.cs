@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ScatterGather.Result
+﻿namespace ScatterGather.Result
 {
     public class ResultEnvelope<T>
     {

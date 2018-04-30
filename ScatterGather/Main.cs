@@ -10,47 +10,47 @@ namespace ScatterGather
 {
     public class WorkloadManager : IWorkload
     {
-        public Task<List<Rslt>> MulticastAsync<Rslt, Req, Rspns>(AbstractRequestInstructions<Rslt, Req, Rspns>[] lstRequests,
-            TimeSpan gatherTimeout, IAggregator<Rslt> gatherer) where Req: IRequest
+        public Task<List<TRslt>> MulticastAsync<TRslt, TReq, TRspns>(AbstractRequestInstructions<TRslt, TReq, TRspns>[] lstRequests,
+            TimeSpan gatherTimeout, IAggregator<TRslt> gatherer) where TReq: IRequest
         {
             if (GetTypeOfWorkload(lstRequests) == WorkloadType.Http)
             {
-                return new HttpWorkload().DoSeveralHttpRequestsAsync(lstRequests.Select(x => x as HttpRequestInstructions<Rslt>).ToList(), gatherTimeout, gatherer);
+                return new HttpWorkload().DoSeveralHttpRequestsAsync(lstRequests.Select(x => x as HttpRequestInstructions<TRslt>).ToList(), gatherTimeout, gatherer);
             }
             throw new NotImplementedException("Unable to parse the type of workload");
         }
 
-        public async Task<List<Rslt>> MulticastAsync<Rslt, Req, Rspns>(AbstractRequestInstructions<Rslt, Req, Rspns> request,
-            List<IHost> hosts, IAggregator<Rslt> gatherer) where Req: IRequest
+        public async Task<List<TRslt>> MulticastAsync<TRslt, TReq, TRspns>(AbstractRequestInstructions<TRslt, TReq, TRspns> request,
+            List<IHost> hosts, IAggregator<TRslt> gatherer) where TReq: IRequest
         {
             if (GetTypeOfWorkload(request) == WorkloadType.Http)
             {
                 if (hosts?.All(x => x.GetType() == typeof(HttpHost)) ?? false)
                 {
-                    return await (new HttpWorkload().DoHttpRequestForSeveralRecipientsAsync(request as HttpRequestInstructions<Rslt>,
+                    return await (new HttpWorkload().DoHttpRequestForSeveralRecipientsAsync(request as HttpRequestInstructions<TRslt>,
                         hosts.Select(x => new Uri(x.Host.ToString())).ToList(), gatherer));
                 }
             }
             else
             {
-                return await (new BaseWorkload<Rslt, Req, Rspns>().DoAsync(request, hosts, gatherer).ConfigureAwait(false));
+                return await (new BaseWorkload<TRslt, TReq, TRspns>().DoAsync(request, hosts, gatherer).ConfigureAwait(false));
             }
             throw new NotImplementedException("Unable to parse the type of workload");
         }
 
-        private WorkloadType GetTypeOfWorkload<Rslt, Req, Rspns>(IEnumerable<AbstractRequestInstructions<Rslt, Req, Rspns>> lstRequests) where Req: IRequest
+        private WorkloadType GetTypeOfWorkload<TRslt, TReq, TRspns>(IEnumerable<AbstractRequestInstructions<TRslt, TReq, TRspns>> lstRequests) where TReq: IRequest
         {
-            if (lstRequests?.Any() ?? false)
+            var abstractRequestInstructionses = lstRequests.ToList();
+            if (abstractRequestInstructionses.Any())
             {
-                return GetTypeOfWorkload(lstRequests.First());
+                return GetTypeOfWorkload(abstractRequestInstructionses.First());
             }
             return WorkloadType.Unsupported;
         }
 
-        private WorkloadType GetTypeOfWorkload<Rslt, Req, Rspns>(AbstractRequestInstructions<Rslt, Req, Rspns> request) where Req: IRequest
+        private WorkloadType GetTypeOfWorkload<TRslt, TReq, TRspns>(AbstractRequestInstructions<TRslt, TReq, TRspns> request) where TReq: IRequest
         {
-            if (request != null && request is HttpRequestInstructions<Rslt>
-                && request.ClientManager != null && request.ClientManager is HttpClientManager)
+            if (request is HttpRequestInstructions<TRslt> && request.ClientManager is HttpClientManager)
             {
                 return WorkloadType.Http;
             }

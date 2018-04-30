@@ -8,10 +8,10 @@ namespace ScatterGather.Workloads
 {
     public interface IWorkload
     {
-        Task<List<Rslt>> MulticastAsync<Rslt, Req, Rspns>(AbstractRequestInstructions<Rslt, Req, Rspns>[] lstRequests,
-            TimeSpan gatherTimeout, IAggregator<Rslt> gatherer) where Req: IRequest;
+        Task<List<TRslt>> MulticastAsync<TRslt, TReq, TRspns>(AbstractRequestInstructions<TRslt, TReq, TRspns>[] lstRequests,
+            TimeSpan gatherTimeout, IAggregator<TRslt> gatherer) where TReq: IRequest;
 
-        Task<List<Rslt>> MulticastAsync<Rslt, Req, Rspns>(AbstractRequestInstructions<Rslt, Req, Rspns> request,
-            List<IHost> hosts, IAggregator<Rslt> gatherer) where Req: IRequest;
+        Task<List<TRslt>> MulticastAsync<TRslt, TReq, TRspns>(AbstractRequestInstructions<TRslt, TReq, TRspns> request,
+            List<IHost> hosts, IAggregator<TRslt> gatherer) where TReq: IRequest;
     }
 }

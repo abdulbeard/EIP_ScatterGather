@@ -139,7 +139,7 @@ namespace ScatterGather.Tests
     {
         public TestHost(string host)
         {
-            this.Host = host;
+            Host = host;
         }
         public object Host { get; private set; }
 

@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace ScatterGather.Request
+﻿namespace ScatterGather.Request
 {
     public interface IRequest
     {

@@ -5,10 +5,10 @@ using System.Threading;
 
 namespace ScatterGather.Request
 {
-    public class SimpleStringRequestInstructions : AbstractRequestInstructions<object, SimpleRequest<object>, object>
+    public class SimpleStringRequestInstructions : AbstractRequestInstructions<object, SimpleRequest, object>
     {
-        public SimpleStringRequestInstructions(SimpleRequest<object>  request, TimeSpan timeout, Func<object, ResultEnvelope<object>> responseTransformer,
-    Guid id, IClientManager<object, SimpleRequest<object>> clientManager = null)
+        public SimpleStringRequestInstructions(SimpleRequest  request, TimeSpan timeout, Func<object, ResultEnvelope<object>> responseTransformer,
+    Guid id, IClientManager<object, SimpleRequest> clientManager = null)
         {
             Request = request;
             Timeout = timeout;
@@ -17,7 +17,7 @@ namespace ScatterGather.Request
             ClientManager = clientManager;
         }
 
-        public override SimpleRequest<object> Request { get; }
+        public override SimpleRequest Request { get; }
 
         public override TimeSpan Timeout { get; }
 
@@ -25,24 +25,23 @@ namespace ScatterGather.Request
 
         public override Guid Id { get; }
 
-        public override IClientManager<object, SimpleRequest<object>> ClientManager { get; }
+        public override IClientManager<object, SimpleRequest> ClientManager { get; }
     }
 
-    public class SimpleRequest<T> : IRequest
+    public abstract class SimpleRequest : IRequest
     {
-        private IHost host;
-        public SimpleRequest(IHost host)
+        protected SimpleRequest(IHost host)
         {
-            this.host = host;
+            Host = host;
         }
-        public IHost Host => host;
+        public IHost Host { get; }
     }
 
     public class SimpleHost<T> : IHost
     {
         public SimpleHost(T host)
         {
-            this.Host = host;
+            Host = host;
         }
         public object Host { get; private set; }
 
@@ -59,10 +58,10 @@ namespace ScatterGather.Request
 
     public class SimpleClient<TOut> : IClient<TOut, IRequest>
     {
-        private string clientId;
+        private string _clientId;
         public SimpleClient(string clientId)
         {
-            this.clientId = clientId;
+            _clientId = clientId;
         }
         public Task<TOut> SendAsync(IRequest request, CancellationToken ct)
         {
