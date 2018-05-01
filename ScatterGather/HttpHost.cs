@@ -20,6 +20,9 @@ namespace ScatterGather
         }
     }
 
+    /// <summary>
+    /// Uniquely represents a host that will receive a message via scatter
+    /// </summary>
     public interface IHost: IEqualityComparer<object>
     {
         object Host { get; }

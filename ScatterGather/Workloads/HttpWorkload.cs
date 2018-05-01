@@ -15,7 +15,7 @@ namespace ScatterGather.Workloads
         private IClientManager<HttpResponseMessage, HttpRequestMessageWrapper> clientManager;
         public HttpWorkload(IClientManager<HttpResponseMessage, HttpRequestMessageWrapper> hcm = null)
         {
-            clientManager = hcm == null ? new HttpClientManager() : hcm;
+            clientManager = hcm ?? new HttpClientManager();
         }
 
         public async Task<List<T>> DoHttpRequestForSeveralRecipientsAsync<T>(HttpRequestInstructions<T> request, List<Uri> hosts, IAggregator<T> gatherer)
@@ -28,7 +28,7 @@ namespace ScatterGather.Workloads
             {
                 var client = clientManager.GetClient(new HttpHost(host.OriginalString));
                 listTasksToAwait.Add(client.SendAsync(request.Request, cts.Token).ContinueWith(
-                    x => listResults.Add(request.ResponseTransformer(x.Result))));
+                    x => listResults.Add(request.ResponseTransformer(x.Result)), cts.Token));
             }
             await Task.WhenAll(listTasksToAwait).ConfigureAwait(false);
             var result = gatherer.Aggregate(listResults);
@@ -49,7 +49,7 @@ namespace ScatterGather.Workloads
                 if (client != null)
                 {
                     listTasksToAwait.Add(client.SendAsync(request.Request, cts.Token).ContinueWith(
-                        x => listResults.Add(request.ResponseTransformer(x.Result))));
+                        x => listResults.Add(request.ResponseTransformer(x.Result)), cts.Token));
                 }
             }
             await Task.WhenAll(listTasksToAwait).ConfigureAwait(false);

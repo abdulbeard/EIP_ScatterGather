@@ -4,9 +4,10 @@ using System.Net.Http;
 
 namespace ScatterGather.Request
 {
+    /// <inheritdoc />
     public class HttpRequestInstructions<T> : AbstractRequestInstructions<T, HttpRequestMessageWrapper, HttpResponseMessage>
     {
-        public HttpRequestInstructions(HttpRequestMessageWrapper request, TimeSpan timeout, Func<HttpResponseMessage, ResultEnvelope<T>> responseTransformer,
+        protected HttpRequestInstructions(HttpRequestMessageWrapper request, TimeSpan timeout, Func<HttpResponseMessage, ResultEnvelope<T>> responseTransformer,
             Guid id, HttpClientManager clientManager = null)
         {
             Request = request;
