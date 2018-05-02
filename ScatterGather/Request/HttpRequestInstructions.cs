@@ -7,7 +7,7 @@ namespace ScatterGather.Request
     /// <inheritdoc />
     public class HttpRequestInstructions<T> : AbstractRequestInstructions<T, HttpRequestMessageWrapper, HttpResponseMessage>
     {
-        protected HttpRequestInstructions(HttpRequestMessageWrapper request, TimeSpan timeout, Func<HttpResponseMessage, ResultEnvelope<T>> responseTransformer,
+        public HttpRequestInstructions(HttpRequestMessageWrapper request, TimeSpan timeout, Func<HttpResponseMessage, ResultEnvelope<T>> responseTransformer,
             Guid id, HttpClientManager clientManager = null)
         {
             Request = request;

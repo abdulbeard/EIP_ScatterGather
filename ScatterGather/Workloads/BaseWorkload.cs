@@ -27,7 +27,8 @@ namespace ScatterGather.Workloads
                 var client = request.ClientManager.GetClient(host);
                 if (client != null)
                 {
-                    taskBag.Add(client.SendAsync(request.Request, cts.Token).ContinueWith(x => listResults.Add(request.ResponseTransformer(x.Result))));
+                    taskBag.Add(client.SendAsync(request.Request, cts.Token)
+                        .ContinueWith(x => listResults.Add(request.ResponseTransformer(x.Result)), cts.Token));
                 }
             }
             await Task.WhenAll(taskBag).ConfigureAwait(false);

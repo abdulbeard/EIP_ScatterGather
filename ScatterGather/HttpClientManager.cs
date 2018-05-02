@@ -25,13 +25,13 @@ namespace ScatterGather
             {
                 return null;
             }
-            var httpHost = host as HttpHost;
-            var hostnameHash = host.GetHashCode();
+            var httpHost = (HttpHost) host;
+            var hostnameHash = host.Host.GetHashCode();
             if (!_dict.ContainsKey(hostnameHash))
             {
-                AddClient(httpHost, new SgHttpClient {
+                AddClient(httpHost, new SgHttpClient(new HttpClient() {
                     BaseAddress = new Uri(httpHost.Host.ToString())
-                });
+                }));
             }
             return _dict[hostnameHash];
         }
@@ -68,11 +68,18 @@ namespace ScatterGather
         Task<TOut> SendAsync(TIn request, CancellationToken ct);
     }
 
-    public class SgHttpClient : HttpClient, IClient<HttpResponseMessage, HttpRequestMessageWrapper>
+    public class SgHttpClient : IClient<HttpResponseMessage, HttpRequestMessageWrapper>
     {
+        private readonly HttpClient _httpClient;
+        public SgHttpClient(HttpClient client)
+        {
+            _httpClient = client;
+        }
         public Task<HttpResponseMessage> SendAsync(HttpRequestMessageWrapper request, CancellationToken ct)
         {
-            return base.SendAsync(request, ct);
+            return _httpClient.SendAsync(request, ct);
         }
+
+        public Uri BaseAddress => _httpClient.BaseAddress;
     }
 }

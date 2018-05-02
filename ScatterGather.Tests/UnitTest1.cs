@@ -7,25 +7,48 @@ using System.Net.Http;
 using Xunit;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.TestHost;
+using ScatterGather.Tests.TestClasses;
 
 namespace ScatterGather.Tests
 {
     public class UnitTest1
     {
+        private TestServer _server;
+        private HttpClient _client;
+
+        public UnitTest1()
+        {
+            _server = new TestServer(new WebHostBuilder().UseStartup<Startup>());
+            _client = _server.CreateClient();
+        }
         [Fact]
         public void Test1()
         {
             var main = new WorkloadManager();
-            var yolo = main.MulticastAsync(new HttpRequestInstructions<string>(
-                new HttpRequestMessageWrapper(), TimeSpan.FromMinutes(5), ResponseTransformer, Guid.Empty, new HttpClientManager()),
-                new List<IHost> { new HttpHost("asdf"), new HttpHost("jkll") }, new AscendingSortAggregator<string>()).Result;
-            var nolo = main.MulticastAsync(new List<HttpRequestInstructions<string>> {
-                new HttpRequestInstructions<string>(new HttpRequestMessageWrapper
-                    {
-                        RequestUri = new Uri("http://arrrrrrrdfasdfasdfuioui.com:8080")
-                    }, TimeSpan.FromMinutes(5), ResponseTransformer, Guid.Empty, new HttpClientManager())
-                }.ToArray(),
-                TimeSpan.FromMinutes(5), new DescendingSortAggregator<string>()).Result;
+            var clientManager = new HttpClientManager();
+            clientManager.AddClient(new HttpHost(_client.BaseAddress.Host), new SgHttpClient(_client));
+            var result = main.MulticastAsync(
+                new HttpRequestInstructions<string>(new HttpRequestMessageWrapper(), TimeSpan.FromSeconds(30),
+                    ResponseTransformer, Guid.NewGuid(), clientManager),
+                new List<IHost>()
+                {
+                    new HttpHost(_client.BaseAddress.AbsoluteUri),
+                    //new HttpHost(_client.BaseAddress.AbsoluteUri),
+                    //new HttpHost(_client.BaseAddress.AbsoluteUri)
+                }, new AscendingSortAggregator<string>()).Result;
+            var asdfsdafasdf = result;
+            //var yolo = main.MulticastAsync(new HttpRequestInstructions<string>(
+            //    new HttpRequestMessageWrapper(), TimeSpan.FromMinutes(5), ResponseTransformer, Guid.Empty, new HttpClientManager()),
+            //    new List<IHost> { new HttpHost("asdf"), new HttpHost("jkll") }, new AscendingSortAggregator<string>()).Result;
+            //var nolo = main.MulticastAsync(
+            //    new List<HttpRequestInstructions<string>>
+            //    {
+            //        new HttpRequestInstructions<string>(
+            //            new HttpRequestMessageWrapper {RequestUri = new Uri("http://arrrrrrrdfasdfasdfuioui.com:8080")},
+            //            TimeSpan.FromMinutes(5), ResponseTransformer, Guid.Empty, new HttpClientManager())
+            //    }.ToArray(), TimeSpan.FromMinutes(5), new DescendingSortAggregator<string>()).Result;
         }
 
         [Fact]
@@ -45,7 +68,12 @@ namespace ScatterGather.Tests
 
         private static ResultEnvelope<string> ResponseTransformer(HttpResponseMessage arg)
         {
-            throw new NotImplementedException();
+            return new ResultEnvelope<string>()
+            {
+                Result = arg.Content.ReadAsStringAsync().Result,
+                Sequence = 0,
+                SortWeight = 1
+            };
         }
 
         private static ResultEnvelope<string> TestResponseTransformer(string arg)
@@ -56,101 +84,6 @@ namespace ScatterGather.Tests
                 Sequence = Environment.TickCount,
                 SortWeight = Environment.TickCount
             };
-        }
-    }
-
-    public class TestAbstractRequestInstructions : AbstractRequestInstructions<string, TestRequest, string>
-    {
-        public TestAbstractRequestInstructions(TestRequest request, TimeSpan timeout, Func<string, ResultEnvelope<string>> responseTransformer,
-            Guid id, IClientManager<string, TestRequest> clientManager = null)
-        {
-            Request = request;
-            Timeout = timeout;
-            ResponseTransformer = responseTransformer;
-            Id = id;
-            ClientManager = clientManager;
-        }
-
-        public override TestRequest Request { get; }
-
-        public override TimeSpan Timeout { get; }
-
-        public override Func<string, ResultEnvelope<string>> ResponseTransformer { get; }
-
-        public override Guid Id { get; }
-
-        public override IClientManager<string, TestRequest> ClientManager { get; }
-    }
-
-    public class TestClientManager : IClientManager<string, TestRequest>
-    {
-        Dictionary<int, TestClient> dict;
-        public TestClientManager()
-        {
-            dict = dict ?? new Dictionary<int, TestClient>();
-        }
-
-        public void AddClient(IHost host, IClient<string, TestRequest> client)
-        {
-            if (!dict.ContainsKey(((TestHost)host).Host.GetHashCode()))
-            {
-                dict.Add(((TestHost)host).Host.GetHashCode(), client as TestClient);
-            }
-        }
-
-        public IClient<string, TestRequest> GetClient(IHost host)
-        {
-            if (dict.ContainsKey(((TestHost)host).Host.GetHashCode()))
-            {
-                return dict[((TestHost)host).Host.GetHashCode()];
-            }
-            return null;
-        }
-    }
-
-    public class TestClient : IClient<string, TestRequest>
-    {
-        private string clientId;
-        public TestClient(string clientId)
-        {
-            this.clientId = clientId;
-        }
-        public Task<string> SendAsync(TestRequest request, CancellationToken ct)
-        {
-            //if(clientId == "uiop")
-            //{
-            //    Task.Delay(100).Wait();
-            //}
-            return Task.FromResult($"{request.Host}_sklfjlksdjklflksdkflsldf_{clientId}");
-        }
-    }
-
-    public class TestRequest : IRequest
-    {
-        private IHost host;
-        public TestRequest(IHost host)
-        {
-            this.host = host;
-        }
-        public IHost Host => host;
-    }
-
-    public class TestHost : IHost
-    {
-        public TestHost(string host)
-        {
-            Host = host;
-        }
-        public object Host { get; private set; }
-
-        public new bool Equals(object x, object y)
-        {
-            throw new NotImplementedException();
-        }
-
-        public int GetHashCode(object obj)
-        {
-            throw new NotImplementedException();
         }
     }
 }
