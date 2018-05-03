@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -24,13 +25,32 @@ namespace ScatterGather.Workloads
             var listTasksToAwait = new List<Task>();
             var cts = new CancellationTokenSource();
             cts.CancelAfter(request.Timeout);
+            var testOutput = new StringBuilder();
             foreach (var host in hosts)
             {
-                var client = clientManager.GetClient(new HttpHost(host.OriginalString));
-                listTasksToAwait.Add(client.SendAsync(request.Request, cts.Token).ContinueWith(
-                    x => listResults.Add(request.ResponseTransformer(x.Result)), cts.Token));
+                try
+                {
+                    var client = clientManager.GetClient(new HttpHost(host.OriginalString));
+                    listTasksToAwait.Add(client.SendAsync(request.Request.Copy(), cts.Token).ContinueWith(
+                        x => listResults.Add(request.ResponseTransformer(x.Result)), cts.Token));
+                    testOutput.AppendLine($"this host worked fine: {host.AbsoluteUri}");
+                }
+                catch (Exception e)
+                {
+                    testOutput.AppendLine("foreach Catch->" + e.Message);
+                }
             }
-            await Task.WhenAll(listTasksToAwait).ConfigureAwait(false);
+
+            try
+            {
+                Task.WaitAll(listTasksToAwait.ToArray());
+                //await Task.WhenAll(listTasksToAwait).ContinueWith(x => testOutput.AppendLine(x.Status.ToString()), TaskContinuationOptions.OnlyOnFaulted);
+            }
+            catch (Exception e) { testOutput.AppendLine("outer catch->" + e.Message); }
+            testOutput.AppendLine($"listResults.Count = {listResults.Count}; {string.Join(",", listResults.Select(x => x.Result))}");
+            listResults = listResults.Where(x => x != null).ToList();
+            testOutput.AppendLine($"listResults.Count = {listResults.Count}; {string.Join(",", listResults.Select(x => x.Result))}");
+            System.IO.File.WriteAllText(@"C:\users\az185030\desktop\sampletestresults.txt", testOutput.ToString());
             var result = gatherer.Aggregate(listResults);
             return result.Select(x => x.Result).ToList();
 
@@ -48,7 +68,7 @@ namespace ScatterGather.Workloads
                 var client = clientManager.GetClient(new HttpHost(request.Request.RequestUri.ToString()));
                 if (client != null)
                 {
-                    listTasksToAwait.Add(client.SendAsync(request.Request, cts.Token).ContinueWith(
+                    listTasksToAwait.Add(client.SendAsync(request.Request.Copy(), cts.Token).ContinueWith(
                         x => listResults.Add(request.ResponseTransformer(x.Result)), cts.Token));
                 }
             }

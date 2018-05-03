@@ -38,10 +38,14 @@ namespace ScatterGather
 
         public void AddClient(IHost host, IClient<HttpResponseMessage, HttpRequestMessageWrapper> client)
         {
-            if (!_dict.ContainsKey(host.GetHashCode()))
+            if (host?.Host != null)
             {
-                if (client is SgHttpClient sgHttpClient)
-                    _dict.Add(sgHttpClient.BaseAddress.ToString().GetHashCode(), sgHttpClient);
+                var hash = host.Host.GetHashCode();
+                if (!_dict.ContainsKey(hash))
+                {
+                    if (client is SgHttpClient sgHttpClient)
+                        _dict.Add(hash, sgHttpClient);
+                }
             }
         }
     }

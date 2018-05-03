@@ -50,7 +50,7 @@ namespace ScatterGather
 
         private WorkloadType GetTypeOfWorkload<TRslt, TReq, TRspns>(AbstractRequestInstructions<TRslt, TReq, TRspns> request) where TReq: IRequest
         {
-            if (request is HttpRequestInstructions<TRslt> && request.ClientManager is HttpClientManager)
+            if (request is HttpRequestInstructions<TRslt>)
             {
                 return WorkloadType.Http;
             }

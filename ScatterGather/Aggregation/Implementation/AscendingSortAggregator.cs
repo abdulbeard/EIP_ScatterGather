@@ -8,7 +8,7 @@ namespace ScatterGather.Aggregation.Implementation
     {
         public List<ResultEnvelope<T>> Aggregate(IReadOnlyList<ResultEnvelope<T>> results)
         {
-            return results.OrderBy(x => x.SortWeight).ToList();
+            return results?.OrderBy(x => x?.SortWeight).ToList();
         }
     }
 }
